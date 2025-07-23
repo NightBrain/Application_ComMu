@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'myhistory.dart'; // ✅ import หน้า MyHistory
 
 class Home extends StatelessWidget {
   @override
@@ -29,11 +30,7 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         leading: Container(
           margin: EdgeInsets.all(8),
-          child: Image.asset(
-            'images/logo.png', // คุณจะต้องเพิ่ม logo ใน assets
-            width: 32,
-            height: 32,
-          ),
+          child: Image.asset('images/logo.png', width: 32, height: 32),
         ),
         title: ShaderMask(
           shaderCallback: (bounds) => LinearGradient(
@@ -46,15 +43,14 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.bold,
-              color: Colors.white, // ต้องใช้สีขาวเท่านั้นใน ShaderMask
+              color: Colors.white,
             ),
           ),
         ),
-
         actions: [
           IconButton(
             icon: Icon(Icons.search, color: Colors.blue),
-            iconSize: 35, // ขนาดไอคอน (ค่าเริ่มต้นคือ 24.0)
+            iconSize: 35,
             onPressed: () {},
           ),
         ],
@@ -63,15 +59,14 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             Image.asset('images/B1.png', width: double.infinity, height: 120),
-            // Header Banner
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: Color(0xFFFFD0F5), // ชมพูอ่อน
+                color: Color(0xFFFFD0F5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.5), // เงาล่าง
+                    color: Colors.grey.withOpacity(0.5),
                     offset: Offset(0, 4),
                     blurRadius: 4,
                   ),
@@ -83,14 +78,12 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFFFF4081), // ชมพูเข้ม
+                    color: Color(0xFFFF4081),
                   ),
                 ),
               ),
             ),
-
             SizedBox(height: 20),
-            // Course Cards
             _buildCourseCard(
               title: 'สาขาวิทยาการคอมพิวเตอร์',
               subtitle: 'จำนวนนักศึกษา',
@@ -98,12 +91,10 @@ class _HomePageState extends State<HomePage> {
               year2: '35',
               colors: [Colors.orange[400]!, Colors.red[400]!],
               iconPath: 'images/comsci.png',
-              isLeftAligned: true, // ซ้าย
-              isTextRightAligned: true, // ตัวหนังสือชิดขวา
+              isLeftAligned: true,
+              isTextRightAligned: true,
             ),
-
             SizedBox(height: 12),
-
             _buildCourseCard(
               title: 'สาขาเทคโนโลยีคอมพิวเตอร์และดิจิทัล',
               subtitle: 'จำนวนนักศึกษา',
@@ -111,11 +102,9 @@ class _HomePageState extends State<HomePage> {
               year2: '35',
               colors: [Colors.lightBlue[300]!, Colors.blue[300]!],
               iconPath: 'images/cdt.png',
-              isLeftAligned: false, // ขวา
+              isLeftAligned: false,
             ),
-
             SizedBox(height: 12),
-
             _buildCourseCard(
               title: 'สาขาเทคโนโลยีสารสนเทศ',
               subtitle: 'จำนวนนักศึกษา',
@@ -123,12 +112,10 @@ class _HomePageState extends State<HomePage> {
               year2: '35',
               colors: [Colors.teal[400]!, Colors.green[400]!],
               iconPath: 'images/it.png',
-              isLeftAligned: true, // ซ้าย
-              isTextRightAligned: true, // ตัวหนังสือชิดขวา
+              isLeftAligned: true,
+              isTextRightAligned: true,
             ),
-
             SizedBox(height: 12),
-
             _buildCourseCard(
               title: 'สาขาคอมพิวเตอร์ศึกษา',
               subtitle: 'จำนวนนักศึกษา',
@@ -136,9 +123,8 @@ class _HomePageState extends State<HomePage> {
               year2: '35',
               colors: [Colors.purple[400]!, Colors.deepPurple[400]!],
               iconPath: 'images/com.png',
-              isLeftAligned: false, // ขวา
+              isLeftAligned: false,
             ),
-
             SizedBox(height: 100),
           ],
         ),
@@ -153,6 +139,14 @@ class _HomePageState extends State<HomePage> {
           setState(() {
             _selectedIndex = index;
           });
+
+          // ✅ ถ้ากดไอคอน person (index = 4) จะไปหน้า MyHistory
+          if (index == 4) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MyHistoryScreen()),
+            );
+          }
         },
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
