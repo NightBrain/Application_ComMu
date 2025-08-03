@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import 'login_screen.dart';
+import 'home_screen.dart';
 
-class MyHistoryScreen extends StatefulWidget {
+class RegisterScreen extends StatefulWidget {
   @override
-  _MyHistoryScreenState createState() => _MyHistoryScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _MyHistoryScreenState extends State<MyHistoryScreen>
+class _RegisterScreenState extends State<RegisterScreen>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   final _surnameController = TextEditingController();
-  final _imageUrlController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _genderController = TextEditingController(); // Controller for Gender
+  final _imageUrlController =
+      TextEditingController(); // Controller for Image URL
 
   String _selectedSex = 'male';
   bool _isPasswordVisible = false;
@@ -33,6 +40,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
     _animationController.forward();
   }
 
+  // Helper method to show success snackbar (from MyHistoryScreen)
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -51,6 +59,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
     );
   }
 
+  // Helper method to show error dialog (from MyHistoryScreen)
   void _showErrorDialog(String title, String message) {
     AwesomeDialog(
       context: context,
@@ -59,9 +68,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
       title: title,
       desc: message,
       btnOkText: 'OK',
-      btnOkOnPress: () {
-        print("Error dialog closed");
-      },
+      btnOkOnPress: () {},
       btnOkColor: Colors.red[600],
       buttonsTextStyle: TextStyle(
         color: Colors.white,
@@ -79,6 +86,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
     ).show();
   }
 
+  // Helper method to check for empty fields (from MyHistoryScreen)
   List<String> _getEmptyFields() {
     List<String> emptyFields = [];
 
@@ -89,165 +97,119 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
       emptyFields.add('Password');
     }
     if (_nameController.text.isEmpty) {
-      emptyFields.add('First Name');
+      emptyFields.add('Name');
     }
     if (_surnameController.text.isEmpty) {
-      emptyFields.add('Last Name');
+      emptyFields.add('Surname');
     }
-
     return emptyFields;
   }
 
-  void _submitForm() {
-    // Check if required data is available first
+  // Function to handle email/password registration and save to Firestore
+  Future<void> _registerWithEmailAndPassword() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      bool success = await authProvider.registerUser(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        name: _nameController.text.trim(),
+        surname: _surnameController.text.trim(),
+        gender: _selectedSex == 'male' ? 'Male' : 'Female',
+        imageURL: _imageUrlController.text.trim().isEmpty ? null : _imageUrlController.text.trim(),
+      );
+
+      if (success) {
+        // Show success dialog
+        await AwesomeDialog(
+          context: context,
+          dialogType: DialogType.success,
+          animType: AnimType.bottomSlide,
+          title: 'สำเร็จ!',
+          desc: 'ลงทะเบียนสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว',
+          btnOkOnPress: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+            );
+          },
+        ).show();
+      } else {
+        String errorMessage = authProvider.errorMessage ?? 'ไม่สามารถลงทะเบียนได้';
+        if (errorMessage.contains('Google')) {
+          errorMessage += '\n\nหากปัญหายังคงอยู่ กรุณาตรวจสอบ:\n• การเชื่อมต่ออินเทอร์เน็ต\n• การตั้งค่า Google Sign-in ใน Firebase Console\n• SHA-1 fingerprint configuration';
+        }
+        _showErrorDialog('เกิดข้อผิดพลาด!', errorMessage);
+      }
+    } catch (e) {
+      print(e);
+      _showErrorDialog('เกิดข้อผิดพลาด!', 'เกิดข้อผิดพลาดที่ไม่คาดคิด');
+    }
+  }
+
+  // Final submit handler, integrating validation and Firebase logic
+  void _submitForm() async {
     List<String> emptyFields = _getEmptyFields();
-
     if (emptyFields.isNotEmpty) {
-      // Show warning for empty fields
       String fieldsText = emptyFields.join(', ');
-      String message = 'Please fill in the following fields: $fieldsText';
-
-      _showErrorDialog('Incomplete Information!', message);
-
+      String message = 'กรุณากรอกข้อมูลต่อไปนี้: $fieldsText';
+      _showErrorDialog('ข้อมูลไม่ครบถ้วน!', message);
       return;
     }
 
-    // Check form validation
     if (_formKey.currentState!.validate()) {
-      print("Form is valid, showing dialog...");
-
-      AwesomeDialog(
-        context: context,
-        dialogType: DialogType.success,
-        animType: AnimType.bottomSlide,
-        title: 'Success!',
-        desc: 'Form submitted successfully',
-        btnOkText: 'View Details',
-        btnCancelText: 'Close',
-        btnOkOnPress: () {
-          print("OK button pressed");
-          _showFormDetails();
-        },
-        btnCancelOnPress: () {
-          print("Cancel button pressed");
-        },
-        btnOkColor: Colors.blue[600],
-        btnCancelColor: Colors.grey[400],
-        buttonsTextStyle: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-        titleTextStyle: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-          color: Colors.grey[800],
-        ),
-        descTextStyle: TextStyle(fontSize: 16, color: Colors.grey[600]),
-        dismissOnTouchOutside: true,
-        dismissOnBackKeyPress: false,
-      ).show();
+      await _registerWithEmailAndPassword();
     } else {
-      print("Form validation failed");
       _showErrorDialog(
-        'Invalid Information!',
-        'Please check that the information entered is correct according to the specified format',
+        'ข้อมูลไม่ถูกต้อง!',
+        'กรุณาตรวจสอบข้อมูลในฟอร์ม',
       );
     }
   }
 
-  void _showFormDetails() {
-    print("Showing form details dialog...");
+  // Function to handle Google Sign-in (retained from previous version)
+  Future<void> _signInWithGoogle() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      bool success = await authProvider.signInWithGoogle();
 
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.info,
-      animType: AnimType.scale,
-      title: 'Form Details',
-      body: Container(
-        width: double.maxFinite,
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        child: Container(
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildInfoItem('Email', _emailController.text),
-              _buildInfoItem('Password', '*' * _passwordController.text.length),
-              _buildInfoItem(
-                'Gender',
-                _selectedSex == 'male' ? 'Male' : 'Female',
-              ),
-              _buildInfoItem('First Name', _nameController.text),
-              _buildInfoItem('Last Name', _surnameController.text),
-              _buildInfoItem(
-                'Image URL',
-                _imageUrlController.text.isEmpty
-                    ? 'Not specified'
-                    : _imageUrlController.text,
-              ),
-            ],
-          ),
-        ),
-      ),
-      btnOkText: 'OK',
-      btnOkOnPress: () {
-        print("Form details OK button pressed");
-      },
-      btnOkColor: Colors.blue[600],
-      buttonsTextStyle: TextStyle(
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-      ),
-      titleTextStyle: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: Colors.grey[800],
-      ),
-      dismissOnTouchOutside: true,
-      dismissOnBackKeyPress: false,
-    ).show();
-  }
-
-  Widget _buildInfoItem(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              '$label:',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-                fontSize: 14,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(color: Colors.grey[800], fontSize: 14),
-            ),
-          ),
-        ],
-      ),
-    );
+      if (success) {
+        await AwesomeDialog(
+          context: context,
+          dialogType: DialogType.success,
+          animType: AnimType.bottomSlide,
+          title: 'สำเร็จ!',
+          desc: 'เข้าสู่ระบบด้วย Google สำเร็จ!',
+          btnOkOnPress: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          },
+        ).show();
+      } else {
+        _showErrorDialog(
+          'เกิดข้อผิดพลาด!',
+          authProvider.errorMessage ?? 'ไม่สามารถเข้าสู่ระบบด้วย Google ได้',
+        );
+      }
+    } catch (e) {
+      _showErrorDialog(
+        'เกิดข้อผิดพลาด!',
+        'เกิดข้อผิดพลาดที่ไม่คาดคิดในการเข้าสู่ระบบด้วย Google',
+      );
+    }
   }
 
   @override
   void dispose() {
     _animationController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
     _nameController.dispose();
     _surnameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _genderController.dispose();
     _imageUrlController.dispose();
     super.dispose();
   }
@@ -258,7 +220,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: Text(
-          "My History",
+          "ลงทะเบียน",
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: Colors.blue[600],
@@ -279,6 +241,40 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Name and Surname Fields
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                              controller: _nameController,
+                              label: 'ชื่อ',
+                              icon: Icons.person_rounded,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'กรุณากรอกชื่อ';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: _buildTextField(
+                              controller: _surnameController,
+                              label: 'นามสกุล',
+                              icon: Icons.person_outline_rounded,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'กรุณากรอกนามสกุล';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+
                       // Email Field
                       _buildTextField(
                         controller: _emailController,
@@ -287,12 +283,12 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter email';
+                            return 'กรุณากรอก email';
                           }
                           if (!RegExp(
                             r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                           ).hasMatch(value)) {
-                            return 'Please enter a valid email';
+                            return 'กรุณากรอก email ที่ถูกต้อง';
                           }
                           return null;
                         },
@@ -302,7 +298,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                       // Password Field
                       _buildTextField(
                         controller: _passwordController,
-                        label: 'Password',
+                        label: 'รหัสผ่าน',
                         icon: Icons.lock_rounded,
                         obscureText: !_isPasswordVisible,
                         suffixIcon: IconButton(
@@ -320,10 +316,28 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter password';
+                            return 'กรุณากรอกรหัสผ่าน';
                           }
                           if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
+                            return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 20),
+
+                      // Confirm Password Field
+                      _buildTextField(
+                        controller: _confirmPasswordController,
+                        label: 'ยืนยันรหัสผ่าน',
+                        icon: Icons.lock_rounded,
+                        obscureText:
+                            !_isPasswordVisible, // Re-using password visibility
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'กรุณายืนยันรหัสผ่าน';
+                          } else if (value != _passwordController.text) {
+                            return 'รหัสผ่านไม่ตรงกัน';
                           }
                           return null;
                         },
@@ -332,7 +346,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
 
                       // Sex Selection
                       Text(
-                        'Gender',
+                        'เพศ',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -345,7 +359,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                           Expanded(
                             child: _buildGenderOption(
                               'male',
-                              'Male',
+                              'ชาย',
                               Icons.male_rounded,
                             ),
                           ),
@@ -353,7 +367,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                           Expanded(
                             child: _buildGenderOption(
                               'female',
-                              'Female',
+                              'หญิง',
                               Icons.female_rounded,
                             ),
                           ),
@@ -361,38 +375,10 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                       ),
                       SizedBox(height: 20),
 
-                      // Name Field
-                      _buildTextField(
-                        controller: _nameController,
-                        label: 'First Name',
-                        icon: Icons.person_rounded,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter first name';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 20),
-
-                      // Surname Field
-                      _buildTextField(
-                        controller: _surnameController,
-                        label: 'Last Name',
-                        icon: Icons.person_outline_rounded,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter last name';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 20),
-
                       // Image URL Field
                       _buildTextField(
                         controller: _imageUrlController,
-                        label: 'Profile Image URL (Optional)',
+                        label: 'URL รูปโปรไฟล์ (ไม่บังคับ)',
                         icon: Icons.image_rounded,
                         keyboardType: TextInputType.url,
                         validator: (value) {
@@ -401,7 +387,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                               r'^https?:\/\/.+',
                               caseSensitive: false,
                             ).hasMatch(value)) {
-                              return 'Please enter a valid URL';
+                              return 'กรุณากรอก URL ที่ถูกต้อง';
                             }
                           }
                           return null;
@@ -414,7 +400,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                         _buildImagePreview(),
                       SizedBox(height: 32),
 
-                      // Submit Button
+                      // Register Button
                       Container(
                         height: 56,
                         decoration: BoxDecoration(
@@ -440,7 +426,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                             ),
                           ),
                           child: Text(
-                            'Submit',
+                            'ลงทะเบียน',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -450,6 +436,106 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                         ),
                       ),
                       SizedBox(height: 20),
+
+                      // "or" divider
+                      Row(
+                        children: [
+                          Expanded(child: Divider(color: Colors.grey[300])),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'หรือ',
+                              style: TextStyle(color: Colors.grey[500]),
+                            ),
+                          ),
+                          Expanded(child: Divider(color: Colors.grey[300])),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+
+                      // Google Sign In Button
+                      Container(
+                        width: double.infinity,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: TextButton(
+                          onPressed: _signInWithGoogle,
+                          style: TextButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'images/google.png',
+                                height: 20,
+                                width: 20,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        'G',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                'ลงทะเบียนด้วย Google',
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+
+                      // Bottom navigation text
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "มีบัญชีอยู่แล้ว? ",
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              'เข้าสู่ระบบ',
+                              style: TextStyle(
+                                color: Color(0xFF42A5F5),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -461,6 +547,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
     );
   }
 
+  // Helper widgets from MyHistoryScreen
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -489,7 +576,6 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
         validator: validator,
         style: TextStyle(fontSize: 16, color: Colors.grey[800]),
         onChanged: (value) {
-          // Trigger rebuild to show/hide image preview
           if (controller == _imageUrlController) {
             setState(() {});
           }
@@ -610,7 +696,7 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                   ),
                   SizedBox(width: 8),
                   Text(
-                    'Image Preview',
+                    'ตัวอย่างรูปภาพ',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: Colors.blue[600],
@@ -651,14 +737,14 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
                           ),
                           SizedBox(height: 8),
                           Text(
-                            'Unable to load image',
+                            'ไม่สามารถโหลดรูปภาพได้',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14,
                             ),
                           ),
                           Text(
-                            'Please check the URL',
+                            'กรุณาตรวจสอบ URL',
                             style: TextStyle(
                               color: Colors.grey[500],
                               fontSize: 12,
@@ -676,4 +762,4 @@ class _MyHistoryScreenState extends State<MyHistoryScreen>
       ),
     );
   }
-}
+} 

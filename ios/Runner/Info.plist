@@ -2,16 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Allowing local network access is required for Flutter debugging.</string>
-	<key>NSBonjourServices</key>
-	<array>
-		<string>_dartobservatory._tcp</string>
-	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Commu</string>
+	<string>Commurur</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -19,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>commu</string>
+	<string>commurur</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -51,5 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>REVERSED_CLIENT_ID</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.224534924824-qj47cl85tue3sqal7l27eb34nn1manj9</string>
+			</array>
+		</dict>
+	</array>
+	<key>GIDClientID</key>
+	<string>224534924824-qj47cl85tue3sqal7l27eb34nn1manj9.apps.googleusercontent.com</string>
 </dict>
 </plist>

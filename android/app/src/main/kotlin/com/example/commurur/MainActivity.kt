@@ -1,4 +1,4 @@
-package com.example.commu
+package com.example.commurur
 
 import io.flutter.embedding.android.FlutterActivity
 
