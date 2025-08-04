@@ -4,12 +4,12 @@
 
 ### 🤖 Android
 - **Emulator**: Medium Phone API 35
-- **Device ID**: `emulator-5554`
+- **Device ID**: `emulator-xxxxxx`
 - **Status**: ✅ Ready
 
 ### 🍎 iOS  
 - **Simulator**: iPhone 16 Pro
-- **Device ID**: `B4B26300-51BA-4EE2-8F7A-E47BF0FCC0EE`
+- **Device ID**: `xxxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
 - **Status**: ✅ Ready
 
 ---
@@ -24,13 +24,13 @@
 flutter emulators --launch Medium_Phone_API_35
 
 # Wait for emulator to start, then run
-flutter run -d emulator-5554
+flutter run -d emulator-xxxxxxx
 ```
 
 #### iOS Only
 ```bash
 # Run on iOS Simulator
-flutter run -d B4B26300-51BA-4EE2-8F7A-E47BF0FCC0EE
+flutter run -d xxxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
 ### Option 2: Run on Both Platforms (Recommended)
@@ -47,10 +47,10 @@ chmod +x run_both_platforms.sh
 #### Manual Method
 ```bash
 # Terminal 1 - Android
-flutter run -d emulator-5554
+flutter run -d emulator-xxxx
 
 # Terminal 2 - iOS  
-flutter run -d B4B26300-51BA-4EE2-8F7A-E47BF0FCC0EE
+flutter run -d xxxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxE
 ```
 
 ---
