@@ -75,6 +75,7 @@ app.*.map.json
 # Firebase configuration files (contains sensitive data)
 **/android/app/google-services.json
 **/ios/Runner/GoogleService-Info.plist
+**/lib/firebase_options.dart
 
 # Environment files
 .env
